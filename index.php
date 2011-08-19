@@ -31,6 +31,6 @@ $data = array(
 );
  */
 
-#$se->update($data);
-#$se->commit();
+//$se->update($data);
+$se->commit();
 ?>

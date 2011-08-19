@@ -1,8 +1,10 @@
 <?php
 class SearchEngine {
-    private $client;
+    private $client = null;
 
     function __construct($options = null) { 
+        if($this->client) return;
+
         if($options === null) {
             $options = array(
                 'hostname' => SOLR_SERVER_HOSTNAME,
