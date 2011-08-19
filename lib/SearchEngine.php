@@ -3,8 +3,6 @@ class SearchEngine {
     private $client = null;
 
     function __construct($options = null) { 
-        if($this->client) return;
-
         if($options === null) {
             $options = array(
                 'hostname' => SOLR_SERVER_HOSTNAME,
@@ -83,6 +81,17 @@ class SearchEngine {
         $query_response = $this->client->query($query);
         $response = $query_response->getResponse();
         print_r($response);
+    }
+
+
+    public static function getConnection($options = null) {
+        static $se_connection = null;
+
+        if($se_connection !== null){
+            return $se_connection;
+        }
+
+        return $se_connection = new SearchEngine($options);
     }
 }
 ?>
