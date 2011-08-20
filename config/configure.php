@@ -29,6 +29,9 @@ define('SOLR_SERVER_TIMEOUT', 10);
 /* please set true if you are in product environment for performance */
 define('SOLR_AUTO_COMMIT', false );
 
+/* set result return rows */
+define('SOLR_RESULT_ROWS', 30 );
+
 /* File name to a PEM-formatted private key + private certificate (concatenated in that order) */
 define('SOLR_SSL_CERT', 'certs/combo.pem');
 
