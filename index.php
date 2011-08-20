@@ -6,7 +6,7 @@ require ROOT . '/config/configure.php';
 require ROOT . '/lib/SearchEngine.php';
 
 
-$se = new SearchEngine();
+$se = SearchEngine::getConnection();
 
 /*
 $data = array(
@@ -32,5 +32,6 @@ $data = array(
  */
 
 //$se->update($data);
-$se->commit();
+//$se->commit();
+print_r($se->search('*'));
 ?>

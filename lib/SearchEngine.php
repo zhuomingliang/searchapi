@@ -34,6 +34,8 @@ class SearchEngine {
         $doc->addField('title',          $data['title']);
         $doc->addField('manu',   (int)   $data['manu']);
         $doc->addField('price',  (float) $data['price']);
+        // XXX uncomment it when it's ready
+        //$doc->addField('date',   (float) $data['date']);
         $doc->addField('sales',  (int)   $data['sales']);
 
         try {
@@ -72,14 +74,46 @@ class SearchEngine {
     }
 
 
-    function search() {
+    function search($keywords = '', $filters = array(), $sorts = array(), $start = 0, $rows = SOLR_RESULT_ROWS) {
         $query = new SolrQuery();
-        $query->setQuery('lucene');
-        $query->setStart(0);
-        $query->setRows(50);
-        $query->addField('cat')->addField('features')->addField('id')->addField('timestamp');
-        $query_response = $this->client->query($query);
-        $response = $query_response->getResponse();
+        
+        #$patterns = array('/[\:|\?|\*|\~|\^|\!|\-|\+|\(|\)|\[|\]|\{|\}|\\|\&|\|]/', '/AND/i', '/OR/i', '/NOT/i');
+        #$replace  = array();
+
+        $keywords = SolrUtils::escapeQueryChars("$keywords");
+
+        $query->setQuery("title:{$keywords}")->setStart($start)->setRows($rows);
+
+        /*
+        $query->setMlt(true);
+        $query->setMltMinDocFrequency(1);
+        $query->setMltMinTermFrequency(2);
+        $query->addMltField('text');
+        */
+
+        foreach ($filters as $key => $value) {
+            $query->addFilterQuery("{$key}:{$value}");
+        }
+
+        //$query->addField('cat')->addField('features')->addField('id')->addField('timestamp');
+        try {
+            $response = $this->client->query($query)->getResponse();
+        } catch(SolrClientException $e) {
+            return array(
+                'responseHeader' => array(
+                    'status' => 0,
+                    'QTime'  => 0,
+                    'params' => array(
+                        'q'     => $keywords
+                    )
+                ),
+                'response'      => array(
+                    'numFound'  => 0,
+                    'start'     => 0,
+                    'doc'       => array(),
+                )
+            );
+        }
         print_r($response);
     }
 
