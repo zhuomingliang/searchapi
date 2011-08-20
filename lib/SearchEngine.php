@@ -1,6 +1,10 @@
 <?php
 class SearchEngine {
     private $client = null;
+    private static $order = array(
+        'ASC'  => SolrQuery::ORDER_ASC,
+        'DESC' => SolrQuery::ORDER_DESC
+    );
 
     function __construct($options = null) { 
         if($options === null) {
@@ -10,7 +14,7 @@ class SearchEngine {
                 'password' => SOLR_SERVER_PASSWORD,
                 'port'     => SOLR_SERVER_PORT,
                 'path'     => SOLR_PATH_TO_SOLR,
-                'wt'       => SOLR_WRITER_TYPE,
+                'wt'       => SOLR_WRITER_TYPE
             );
         }
 
@@ -75,11 +79,7 @@ class SearchEngine {
 
 
     function search($keywords = '', $filters = array(), $sorts = array(), $start = 0, $rows = SOLR_RESULT_ROWS) {
-        $query = new SolrQuery();
-        
-        #$patterns = array('/[\:|\?|\*|\~|\^|\!|\-|\+|\(|\)|\[|\]|\{|\}|\\|\&|\|]/', '/AND/i', '/OR/i', '/NOT/i');
-        #$replace  = array();
-
+        $query    = new SolrQuery();
         $keywords = SolrUtils::escapeQueryChars("$keywords");
 
         $query->setQuery("title:{$keywords}")->setStart($start)->setRows($rows);
@@ -95,7 +95,10 @@ class SearchEngine {
             $query->addFilterQuery("{$key}:{$value}");
         }
 
-        //$query->addField('cat')->addField('features')->addField('id')->addField('timestamp');
+        foreach ($sorts as $key => $value) {
+            $query->addSortField($key, self::$order[$value]);
+        }
+
         try {
             $response = $this->client->query($query)->getResponse();
         } catch(SolrClientException $e) {
@@ -110,11 +113,14 @@ class SearchEngine {
                 'response'      => array(
                     'numFound'  => 0,
                     'start'     => 0,
-                    'doc'       => array(),
+                    'doc'       => array()
                 )
             );
         }
+
         print_r($response);
+
+        return $response;
     }
 
 

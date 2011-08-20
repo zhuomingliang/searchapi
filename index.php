@@ -33,5 +33,7 @@ $data = array(
 
 //$se->update($data);
 //$se->commit();
-print_r($se->search('*'));
+$filters = array();
+$sorts = array('price' => 'DESC');
+$se->search('苹果 鱼', $filters, $sorts);
 ?>
