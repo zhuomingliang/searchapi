@@ -2,8 +2,8 @@
 class SearchEngine {
     private $client = null;
     private static $order = array(
-        'ASC'  => SolrQuery::ORDER_ASC,
-        'DESC' => SolrQuery::ORDER_DESC
+        'asc'  => SolrQuery::ORDER_ASC,
+        'desc' => SolrQuery::ORDER_DESC
     );
 
     function __construct($options = null) { 
@@ -80,22 +80,15 @@ class SearchEngine {
 
     function search($keywords = '', $filters = array(), $sorts = array(), $start = 0, $rows = SOLR_RESULT_ROWS) {
         $query    = new SolrQuery();
-        $keywords = SolrUtils::escapeQueryChars("$keywords");
+        $keywords = SolrUtils::escapeQueryChars($keywords);
 
-        $query->setQuery("title:{$keywords}")->setStart($start)->setRows($rows);
+        $query->setQuery($keywords)->setStart($start)->setRows($rows);
 
-        /*
-        $query->setMlt(true);
-        $query->setMltMinDocFrequency(1);
-        $query->setMltMinTermFrequency(2);
-        $query->addMltField('text');
-        */
-
-        foreach ($filters as $key => $value) {
+        foreach($filters as $key => $value) {
             $query->addFilterQuery("{$key}:{$value}");
         }
 
-        foreach ($sorts as $key => $value) {
+        foreach($sorts as $key => $value) {
             $query->addSortField($key, self::$order[$value]);
         }
 
