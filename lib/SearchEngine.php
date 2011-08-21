@@ -158,6 +158,35 @@ class SearchEngine {
      * @params $rows
      *   最多返回多少行
      * @returns 返回数组
+     *   array(
+     *      'responseHeader' => array(
+     *          'status' => 0,
+     *          'QTime'  => 0,
+     *          'params' => array(
+     *              'q'    => escape($keyword),
+     *              'sort' => 'price asc'  # 可选
+     *          )
+     *      ),
+     *      'response'       => array(
+     *          'numFound'  => $count, # 搜索结果数量
+     *          'start'     => $start, # 从第几个开始返回
+     *          'docs'      => array(  # 如果没有搜索结果, 则为空数组
+     *              0 => array(
+     *                  'id'               => $id, # 商品 id
+     *                  'cat_level_1'      => $cat_level_1, # 一级分类 id
+     *                  'cat_level_2'      => $cat_level_2, # 二级分类 id
+     *                  'cat_level_3'      => $cat_level_3, # 三级分类 id
+     *                  'cat_level_{$n}'   => $cat_level_{$n}, # n 级分类 id
+     *                  'title'            => $title, # 商品标题
+     *                  'manu'             => $manu, # 供应商/品牌
+     *                  'price'            => $price, # 价格
+     *                  'sales'            => $sale, # 销量
+     *                  'date'             => $date, # 上架日期
+     *              ),
+     *              ...
+     *          )
+     *      )
+     *  )
      */
     function search($keywords = '', $filters = array(), $sorts = array(), $start = 0, $rows = SOLR_RESULT_ROWS) {
         $query    = new SolrQuery();
