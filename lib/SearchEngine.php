@@ -153,6 +153,11 @@ class SearchEngine {
      *     price          : 按价格 排序, asc 或 desc
      *     date           : 按上架日期 排序, asc 或 desc
      *
+     * @params $facets
+     *   一个关联数字包含一下一个或者多个 key => value:
+     *     fields    : 一个包含field name 的数组，可选值为: cat_level_1 ... cat_level_{$n}, manu, sales, price, date
+     *     mincount : 设置至少商品数量，低于该数量的不返回
+     * 
      * @params $start
      *   从第几个开始返回
      * @params $rows
@@ -188,9 +193,13 @@ class SearchEngine {
      *      )
      *  )
      */
-    function search($keywords = '', $filters = array(), $sorts = array(), $start = 0, $rows = SOLR_RESULT_ROWS) {
+    function search($keywords = '', $filters = array(), $sorts = array(), $facets = array(), $start = 0, $rows = SOLR_RESULT_ROWS) {
         $query    = new SolrQuery();
         $keywords = SolrUtils::escapeQueryChars($keywords);
+        
+        if(empty($keywords)) {
+            $keywords = '*';
+        }
 
         $query->setQuery($keywords)->setStart($start)->setRows($rows);
 
@@ -200,6 +209,18 @@ class SearchEngine {
 
         foreach($sorts as $key => $value) {
             $query->addSortField($key, self::$order[$value]);
+        }
+
+        if(!empty($facets['fields'])) {
+            $query->setFacet(true);
+
+            foreach($facets['fields'] as $value) {
+                $query->addFacetField($value);
+            }
+
+            if(!empty($facets['mincount'])) {
+                $query->setFacetMinCount($facets['mincount']);
+            }
         }
 
         try {
