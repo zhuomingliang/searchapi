@@ -1,6 +1,7 @@
 <?php
 class SearchEngine {
     private $client = null;
+    private static $query  = null;
     private static $order = array(
         'asc'  => SolrQuery::ORDER_ASC,
         'desc' => SolrQuery::ORDER_DESC
@@ -32,6 +33,7 @@ class SearchEngine {
         }
 
         $this->client = new SolrClient($options);
+        self::$query  = new SolrQuery();
     }
 
     /**
@@ -170,6 +172,8 @@ class SearchEngine {
      *          'params' => array(
      *              'q'    => escape($keyword),
      *              'sort' => 'price asc'  # 可选
+     *              'fq'   => array('cat_level_1:1', manu:2')  # 可选, key 和 value 以冒号分隔
+     *              'facet.field' => array('cat_level_1', cat_level_2')  # 可选
      *          )
      *      ),
      *      'response'       => array(
@@ -193,6 +197,7 @@ class SearchEngine {
      *      )
      *  )
      */
+    /*
     function search($keywords = '', $filters = array(), $sorts = array(), $facets = array(), $start = 0, $rows = SOLR_RESULT_ROWS) {
         $query    = new SolrQuery();
         $keywords = SolrUtils::escapeQueryChars($keywords);
@@ -244,7 +249,197 @@ class SearchEngine {
 
         return $response;
     }
+    */
 
+    /**
+     * 设置搜索关键词
+     *
+     * @params $keywords
+     *   搜索关键词
+     *
+     * @returns 当前对象
+     */
+    public function setKeyword($keywords = '') {
+        $keywords = SolrUtils::escapeQueryChars($keywords);
+        
+        if(empty($keywords)) {
+            $keywords = '*';
+        }
+
+        self::$query->setQuery($keywords);
+
+        return $this;
+    }
+
+    /**
+     * 设置从第几个开始返回
+     *
+     * @params $start
+     *   从第几个开始返回
+     *
+     * @returns 当前对象
+     */
+    public function setStart($start = 0) {
+        self::$query->setStart($start);
+        
+        return $this;
+    }
+     
+    /**
+     * 设置最多返回多少行
+     *
+     * @params $rows
+     *   最多返回多少行
+     *
+     * @returns 当前对象
+     */
+    public function setRows($rows = SOLR_RESULT_ROWS) {
+        self::$query->setRows($rows);
+
+        return $this;
+    }
+
+    /**
+     * 设置过滤查询
+     *
+     * @params $field, $value
+     *   id             : 商品 id
+     *   cat_level_1    : 一级分类 id
+     *   cat_level_2    : 二级分类 id
+     *   cat_level_3    : 三级分类 id
+     *   cat_level_{$n} : n 级分类 id，n 最大为 99
+     *   title          : 商品 id
+     *   manu           : 供应商/品牌 id
+     *   sales          : 销量
+     *   price          : 价格
+     *   date           : 上架日期
+     *
+     * @returns 当前对象
+     */
+    public function addFilter($field, $value) {
+        self::$query->addFilterQuery("{$field}:{$value}");
+
+        return $this;
+    }
+
+    /**
+     * 添加排序
+     *
+     * @params $field, $order
+     *   id             : 按商品 id 排序, asc 或 desc
+     *   cat_level_1    : 按一级分类 id 排序, asc 或 desc
+     *   cat_level_2    : 按二级分类 id 排序, asc 或 desc
+     *   cat_level_3    : 按三级分类 id 排序, asc 或 desc
+     *   cat_level_{$n} : 按 n 级分类 id 排序, asc 或 desc，n 最大为 99
+     *   title          : 按商品 id 排序, asc 或 desc
+     *   manu           : 按供应商/品牌 id 排序, asc 或 desc
+     *   sales          : 按销量 排序, asc 或 desc
+     *   price          : 按价格 排序, asc 或 desc
+     *   date           : 按上架日期 排序, asc 或 desc
+     *
+     * @returns 当前对象
+     */
+    public function addSort($field, $order = 'desc') {
+        self::$query->addSortField($field, self::$order[$order]);
+
+        return $this;
+    }
+
+    /**
+     * 设置分组查询
+     *
+     * @params $field
+     *     可选值为: cat_level_1 ... cat_level_{$n}, manu, sales, price, date
+     * 
+     * @returns 当前对象
+     */
+    public function addFacet($field) {
+        static $is_not_set_facet = true;
+        
+        if($is_not_set_facet) {
+            self::$query->setFacet(true);
+
+            $is_not_set_facet = false;
+        }
+
+        self::$query->addFacetField($field);
+
+        return $this;
+    }
+   
+    /**
+     * 设置数量过滤，低于该数量的结果不返回
+     *
+     * @params $mincount
+     *   至少商品数量
+     *
+     * @returns 当前对象
+     */
+    public function addFacetMinCount($mincount) {
+        self::$query->setFacetMinCount($mincount);
+
+        return $this;
+    }
+
+    /*
+     *
+     * 获取结果
+     *
+     * @returns 返回数组
+     *   array(
+     *      'responseHeader' => array(
+     *          'status' => 0,
+     *          'QTime'  => 0,
+     *          'params' => array(
+     *              'q'    => escape($keyword),
+     *              'sort' => 'price asc'  # 可选
+     *              'fq'   => array('cat_level_1:1', manu:2')  # 可选, key 和 value 以冒号分隔
+     *              'facet.field' => array('cat_level_1', cat_level_2')  # 可选
+     *          )
+     *      ),
+     *      'response'       => array(
+     *          'numFound'  => $count, # 搜索结果数量
+     *          'start'     => $start, # 从第几个开始返回
+     *          'docs'      => array(  # 如果没有搜索结果, 则为空数组
+     *              0 => array(
+     *                  'id'               => $id, # 商品 id
+     *                  'cat_level_1'      => $cat_level_1, # 一级分类 id
+     *                  'cat_level_2'      => $cat_level_2, # 二级分类 id
+     *                  'cat_level_3'      => $cat_level_3, # 三级分类 id
+     *                  'cat_level_{$n}'   => $cat_level_{$n}, # n 级分类 id
+     *                  'title'            => $title, # 商品标题
+     *                  'manu'             => $manu, # 供应商/品牌
+     *                  'price'            => $price, # 价格
+     *                  'sales'            => $sale, # 销量
+     *                  'date'             => $date, # 上架日期
+     *              ),
+     *              ...
+     *          )
+     *      )
+     *  )
+     */
+    public function getResult() {
+        try {
+            $response = $this->client->query(self::$query)->getResponse();
+        } catch(SolrClientException $e) {
+            return array(
+                'responseHeader' => array(
+                    'status' => 0,
+                    'QTime'  => 0,
+                    'params' => array(
+                        'q'     => $keywords
+                    )
+                ),
+                'response'      => array(
+                    'numFound'  => 0,
+                    'start'     => 0,
+                    'doc'       => array()
+                )
+            );
+        }
+
+        return $response;
+    }
 
     /**
      * 获取到搜索引擎链接。
