@@ -1,7 +1,7 @@
 <?php
 class SearchEngine {
     private $client = null;
-    private static $query  = null;
+    private $query  = null;
     private static $order = array(
         'asc'  => SolrQuery::ORDER_ASC,
         'desc' => SolrQuery::ORDER_DESC
@@ -33,7 +33,7 @@ class SearchEngine {
         }
 
         $this->client = new SolrClient($options);
-        self::$query  = new SolrQuery();
+        $this->query  = new SolrQuery();
     }
 
     /**
@@ -266,7 +266,7 @@ class SearchEngine {
             $keywords = '*';
         }
 
-        self::$query->setQuery($keywords);
+        $this->query->setQuery($keywords);
 
         return $this;
     }
@@ -280,7 +280,7 @@ class SearchEngine {
      * @returns 当前对象
      */
     public function setStart($start = 0) {
-        self::$query->setStart($start);
+        $this->query->setStart($start);
         
         return $this;
     }
@@ -294,7 +294,7 @@ class SearchEngine {
      * @returns 当前对象
      */
     public function setRows($rows = SOLR_RESULT_ROWS) {
-        self::$query->setRows($rows);
+        $this->query->setRows($rows);
 
         return $this;
     }
@@ -317,7 +317,7 @@ class SearchEngine {
      * @returns 当前对象
      */
     public function addFilter($field, $value) {
-        self::$query->addFilterQuery("{$field}:{$value}");
+        $this->query->addFilterQuery("{$field}:{$value}");
 
         return $this;
     }
@@ -340,7 +340,7 @@ class SearchEngine {
      * @returns 当前对象
      */
     public function addSort($field, $order = 'desc') {
-        self::$query->addSortField($field, self::$order[$order]);
+        $this->query->addSortField($field, self::$order[$order]);
 
         return $this;
     }
@@ -357,12 +357,12 @@ class SearchEngine {
         static $is_not_set_facet = true;
         
         if($is_not_set_facet) {
-            self::$query->setFacet(true);
+            $this->query->setFacet(true);
 
             $is_not_set_facet = false;
         }
 
-        self::$query->addFacetField($field);
+        $this->query->addFacetField($field);
 
         return $this;
     }
@@ -376,7 +376,7 @@ class SearchEngine {
      * @returns 当前对象
      */
     public function addFacetMinCount($mincount) {
-        self::$query->setFacetMinCount($mincount);
+        $this->query->setFacetMinCount($mincount);
 
         return $this;
     }
@@ -420,7 +420,7 @@ class SearchEngine {
      */
     public function getResult() {
         try {
-            $response = $this->client->query(self::$query)->getResponse();
+            $response = $this->client->query($this->query)->getResponse();
         } catch(SolrClientException $e) {
             return array(
                 'responseHeader' => array(
