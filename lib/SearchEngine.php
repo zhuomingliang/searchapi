@@ -259,7 +259,7 @@ class SearchEngine {
      *
      * @returns 当前对象
      */
-    public function setKeyword($keywords = '') {
+    public function setQuery($keywords = '') {
         $keywords = SolrUtils::escapeQueryChars($keywords);
         
         if(empty($keywords)) {
@@ -316,7 +316,7 @@ class SearchEngine {
      *
      * @returns 当前对象
      */
-    public function addFilter($field, $value) {
+    public function addFilterQuery($field, $value) {
         $this->query->addFilterQuery("{$field}:{$value}");
 
         return $this;
@@ -339,21 +339,21 @@ class SearchEngine {
      *
      * @returns 当前对象
      */
-    public function addSort($field, $order = 'desc') {
+    public function addSortField($field, $order = 'desc') {
         $this->query->addSortField($field, self::$order[$order]);
 
         return $this;
     }
 
     /**
-     * 设置分组查询
+     * 设置分组查询 Field
      *
      * @params $field
      *     可选值为: cat_level_1 ... cat_level_{$n}, manu, sales, price, date
      * 
      * @returns 当前对象
      */
-    public function addFacet($field) {
+    public function addFacetField($field) {
         static $is_not_set_facet = true;
         
         if($is_not_set_facet) {
@@ -366,7 +366,29 @@ class SearchEngine {
 
         return $this;
     }
-   
+
+    /**
+     * 设置分组查询
+     *
+     * @params $query
+     *    例：price:[* TO 100], price:[100 TO 200]
+     * 
+     * @returns 当前对象
+     */
+    public function addFacetQuery($query) {
+        static $is_not_set_facet = true;
+        
+        if($is_not_set_facet) {
+            $this->query->setFacet(true);
+
+            $is_not_set_facet = false;
+        }
+
+        $this->query->addFacetQuery($query);
+
+        return $this;
+    }
+
     /**
      * 设置数量过滤，低于该数量的结果不返回
      *
@@ -427,7 +449,7 @@ class SearchEngine {
                     'status' => 0,
                     'QTime'  => 0,
                     'params' => array(
-                        'q'     => $keywords
+                        'q'     => $this->query->getQuery()
                     )
                 ),
                 'response'      => array(
