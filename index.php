@@ -33,7 +33,10 @@ $data = array(
 
 //$se->update($data);
 //$se->commit();
-$filters = array();
-$sorts = array('price' => 'asc');
-print_r($se->search('苹果 鱼', $filters, $sorts));
+#$filters = array();
+#$facets = array('fields' => array('manu'));
+#$sorts = array('price' => 'desc');
+#print_r($se->search('苹果鱼', $filters, $sorts, $facets));
+#print_r($se->setKeyword('苹果鱼')->addFilter('manu',1)->addFacet('cat_level_2')->addFacet('cat_level_1')->getResult());
+print_r($se->setQuery('苹果鱼')->addFilterQuery('price', '[* TO 34]')->addFacetQuery('price:[* TO 100]')->getResult());
 ?>
