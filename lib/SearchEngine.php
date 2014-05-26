@@ -403,8 +403,7 @@ class SearchEngine {
         return $this;
     }
 
-    /*
-     *
+    /**
      * 获取结果
      *
      * @returns 返回数组
